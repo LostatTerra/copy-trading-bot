@@ -1,24 +1,33 @@
 import time
+import os
+import alpaca_trade_api as tradeapi
 
 def connect_to_broker():
-    # Placeholder: Later this will connect to Alpaca or Kraken
-    print("Connecting to broker...")
+    # Pull your API keys from GitHub Actions secrets
+    api_key = os.getenv("ALPACA_API_KEY")
+    secret_key = os.getenv("ALPACA_SECRET_KEY")
+    base_url = "https://paper-api.alpaca.markets"
 
-def fetch_signals():
-    # Placeholder: Pretend to fetch trades
-    print("Fetching latest trades...")
-    return [{"symbol": "BTCUSD", "action": "buy", "amount": 10}]
+    if not api_key or not secret_key:
+        raise Exception("Missing Alpaca API credentials.")
 
-def execute_trade(trade):
-    print(f"Executing {trade['action']} order for {trade['symbol']} - Amount: {trade['amount']}")
+    api = tradeapi.REST(api_key, secret_key, base_url, api_version='v2')
+    print("✅ Connected to Alpaca Paper Trading")
+    return api
+
+def fetch_account(api):
+    account = api.get_account()
+    print(f"💰 Cash balance: ${account.cash}")
+    return account
 
 def main():
-    connect_to_broker()
-    trades = fetch_signals()
-    for trade in trades:
-        execute_trade(trade)
+    try:
+        api = connect_to_broker()
+        fetch_account(api)
+    except Exception as e:
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     while True:
         main()
-        time.sleep(60)  # Wait 60 seconds before checking again
+        time.sleep(60)
